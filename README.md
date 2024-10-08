@@ -1,17 +1,13 @@
 # califorcia
 
-**califorcia** is a package designed for the precise calculation of the **Ca**simir-**Li**fshitz **Forc**e between two dielectric plates.
-Utilizing Lifshitz' formula, this tool enables scientists and researchers to explore the fascinating quantum mechanical 
-effects that manifest at microscopic separations. The Casimir-Lifshitz force, a pivotal phenomenon in quantum field theory, 
-arises from the quantum fluctuations of the electromagnetic field in the vacuum between two materials. This force plays a 
-crucial role in various systems such as micro- and nanoelectromechanical systems (MEMS and NEMS), colloidal suspensions and 
-biology at the cell scale.
+**califorcia** is a tool for precise calculations of the **Ca**simir-**Li**fshitz **Forc**e between dielectric plates, using Lifshitz' formula. It supports:
 
-Our package offers a robust set of features, including:
-* Calculation of the Casimir free energy, force, and force gradient per unit area, enabling detailed analysis of interactions at the nano-scale.
-* Support for arbitrary temperatures, allowing for simulations under a wide range of conditions. 
-* The ability to specify the dielectric response of each material involved, including the medium between the planes, providing flexibility for research across different materials. 
-* Accommodation for up to three layers of coatings on each plane, each of arbitrary thickness, enabling the study of complex material systems.
+* Free energy, force, and force gradient calculations per unit area
+* Simulations at arbitrary temperatures
+* Customizable dielectric responses for materials and medium
+* Multi-layered coatings (up to three layers on each plane) for complex material studies
+
+This package is designed to aid research on the Casimir effect and van der Waals forces, including applications in nanotechnology, colloidal systems, and cell-scale biology.
 
 <p align="center">
   <img src="images/casimir_effect.svg" height="60%" width="60%" >
