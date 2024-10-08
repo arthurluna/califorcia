@@ -83,7 +83,7 @@ separation of 1 micron.
 To do so, we import the `system` class which contains all relevant parameters specifying the system of interest and
 import the materials we want to use:
 ```
-from califorcia.compute import system
+from califorcia import system
 from califorcia.materials import gold, vacuum
 ```
 Notice that the imported material class for gold is described by a simple Drude model characterized by a angular plasma
@@ -101,8 +101,8 @@ material object of right plate, material object of medium. How to specify coatin
 To calculate the Casimir energy and the Casimir pressure, we call the class function `system.calcuate` for the system we
 initialized with the keywords of the corresponding observables we want to calculate:
 ```
-print(s.calculate('energy'))
-print(s.calculate('pressure'))
+print(s.energy())
+print(s.pressure())
 ```
 which results in:
 ```
@@ -120,7 +120,7 @@ The whole system is immersed in ethanol at 300K and the two plates are separated
 
 Again, we import the `system` class and the material classes for `gold` and `enthanol`: 
 ```
-from califorcia.compute import system
+from califorcia import system
 from califorcia.materials import gold, ethanol
 ```
 We then define the user-specified material:
@@ -154,7 +154,7 @@ s = system(T, d, gold, u, ethanol)
 ```
 The Casimir pressure for the system is then calculated as:
 ```
-print(s.calculate('pressure'))
+print(s.pressure())
 ```
 which results in:
 ```
@@ -169,7 +169,7 @@ We calculate the Casimir pressure between two gold halfspaces in vacuum at 300K,
 
 Again, we import the `system` class and the predefined materials `gold`, `teflon` and `vacuum`and define the system:
 ```
-from califorcia.compute import system
+from califorcia import system
 from califorcia.materials import gold, teflon, vacuum
 
 T = 300     # in K
@@ -185,7 +185,7 @@ The software supports up to three coating layers.
 
 We can now calculate the Casimir pressure in the usual way:
 ```
-print(s.calculate('pressure'))
+print(s.pressure())
 ```
 which results in:
 ```

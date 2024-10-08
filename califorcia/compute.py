@@ -123,3 +123,15 @@ class system:
             [self.n1_TE, self.n1_TM] = fsum(self.T, self.d, self.f, epsrel=epsrel, order=N)
             self.n1 = self.n1_TE + self.n1_TM
             return self.n0 + self.n1
+
+    def energy(self, ht_limit=False, fs='psd', epsrel=1.e-8, N=None):
+        # Calculate the Casimir energy per area
+        return self.calculate('energy', ht_limit=ht_limit, fs=fs, epsrel=epsrel, N=N)
+
+    def pressure(self, ht_limit=False, fs='psd', epsrel=1.e-8, N=None):
+        # Calculate the Casimir pressure
+        return self.calculate('pressure', ht_limit=ht_limit, fs=fs, epsrel=epsrel, N=N)
+
+    def pressuregradient(self, ht_limit=False, fs='psd', epsrel=1.e-8, N=None):
+        # Calculate the Casimir pressure
+        return self.calculate('pressuregradient', ht_limit=ht_limit, fs=fs, epsrel=epsrel, N=N)
