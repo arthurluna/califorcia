@@ -17,29 +17,58 @@ Our package offers a robust set of features, including:
   <img src="images/casimir_effect.svg" height="60%" width="60%" >
 </p>
 
-## Installation
+---
 
+## Installation
 In order to install califorcia, first navigate to package folder
 ```
 cd path/to/califorcia
 ```
-If you do not wish to install the package into your base python library, you may want to create a [virtual environment](https://docs.python.org/3/tutorial/venv.html) before installing the package. A virtual environment can be created with
-```
-python -m venv env
-```
-To activate the environment on Unix/MacOS, run:
-```
-source env/bin/activate
-```
-or on Windows, run:
-```
-env/Scripts/activate
+
+We recommend creating a virtual environment with either of the two 
+### Method 1: Using Conda (Anaconda/Miniconda)
+
+1. Create a new Conda environment with the required packages:
+
+```bash
+conda create --name myenv python=3.11 --file requirements.txt
 ```
 
-Finally, install the package with the command
+2. Activate the Conda environment:
+```bash
+conda activate myenv
 ```
+
+
+### Method 2: Using `venv`
+
+1. Create a virtual environment:
+    ```bash
+    python -m venv myenv
+    ```
+
+2. Activate the virtual environment:
+
+    - **On macOS/Linux**:
+      ```bash
+      source myenv/bin/activate
+      ```
+
+    - **On Windows**:
+      ```bash
+      myenv\Scripts\activate
+      ```
+
+### Installing califorcia
+
+Once your virtual environment is set up (using either Conda or `venv`),
+you can install **califorcia** using pip:
+
+```bash
 pip install .
 ```
+
+---
 
 ## Usage
 
