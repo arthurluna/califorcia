@@ -50,6 +50,8 @@ class UserMaterial:
 
 The argument `xi` is the imaginary angular frequency in `rad/s`.
 
+If `materialclass = "plasma"` is used, the material must also define the plasma frequency `wp` in rad/s.
+
 ## Supported `materialclass` Values
 
 ### `"dielectric"`
@@ -107,10 +109,18 @@ s = system(
     deltaL=[50e-9],
 )
 ```
+Ordering convention for `matL` and `matR`:
 
-Ordering convention:
+* the first entry is the coating layer closest to the intervening medium
+* subsequent entries move deeper into the plate
+* the last entry is the substrate half-space
 
-- first entry: layer facing the medium
-- last entry: substrate half-space
+Ordering convention for `deltaL` and `deltaR`:
+
+* each entry gives the thickness of the corresponding coating layer
+* the first thickness refers to the first coating layer facing the medium
+* the thickness list contains only coating layers, so its length must be one less than the corresponding material list
+
+In the example above, [teflon, gold] means a Teflon coating on a gold substrate, and deltaL=[50e-9] specifies that the Teflon layer has thickness 50 nm.
 
 The current implementation supports up to three coating layers on each side.
