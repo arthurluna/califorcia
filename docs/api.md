@@ -92,7 +92,6 @@ The constructor raises `ValueError` for invalid physical or material inputs, inc
 - coating thickness lists that do not match the number of layers
 - non-positive plate separation
 - negative coating thickness
-- too many materials on one side
 - unsupported `materialclass`
 - plasma materials that do not define `wp`
 

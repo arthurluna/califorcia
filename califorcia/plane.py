@@ -1,6 +1,15 @@
 from math import sqrt, exp
 from scipy.constants import c
 
+
+def _combine_reflection_coefficients(r_left, r_right, kappa_layer, thickness):
+    phase = exp(-2 * kappa_layer * thickness)
+    rTM_left, rTE_left = r_left
+    rTM_right, rTE_right = r_right
+    rTM = (rTM_left + rTM_right * phase) / (1 + rTM_left * rTM_right * phase)
+    rTE = (rTE_left + rTE_right * phase) / (1 + rTE_left * rTE_right * phase)
+    return rTM, rTE
+
 def def_reflection_coeff(medium, materials, thicknesses):
     """
     Define reflection coefficients of the plane by specifying medium and materials of the plane and thickness of the
@@ -20,81 +29,32 @@ def def_reflection_coeff(medium, materials, thicknesses):
 
     """
     Nlayers = len(materials)
-    
+    interface_coefficients = [def_fresnel_coefficients(medium, materials[0])]
+    interface_coefficients.extend(
+        def_fresnel_coefficients(materials[idx], materials[idx + 1])
+        for idx in range(Nlayers - 1)
+    )
+
     if Nlayers == 1:
-        fresnel_coeff = def_fresnel_coefficients(medium, materials[0])
-        reflection_coeff = fresnel_coeff
+        return interface_coefficients[0]
 
-    if Nlayers == 2:
-        mat1 = materials[0]
-        mat2 = materials[1]
-        d1 = thicknesses[0]
-        fresnelm1 = def_fresnel_coefficients(medium, mat1)
-        fresnel12 = def_fresnel_coefficients(mat1, mat2)
+    def reflection_coeff(k0, k):
+        effective_reflection = interface_coefficients[-1](k0, k)
 
-        def reflection_coeff(k0, k):
-            rTMm1, rTEm1 = fresnelm1(k0, k)
-            rTM12, rTE12 = fresnel12(k0, k)
-            kappa1 = kappa(mat1, k0, k)
-            rTM = (rTMm1 + rTM12*exp(-2*kappa1*d1))/(1 + rTMm1*rTM12*exp(-2*kappa1*d1))
-            rTE = (rTEm1 + rTE12*exp(-2*kappa1*d1))/(1 + rTEm1*rTE12*exp(-2*kappa1*d1))
-            return rTM, rTE
+        for idx in range(Nlayers - 2, 0, -1):
+            effective_reflection = _combine_reflection_coefficients(
+                interface_coefficients[idx](k0, k),
+                effective_reflection,
+                kappa(materials[idx], k0, k),
+                thicknesses[idx],
+            )
 
-    if Nlayers == 3:
-        mat1 = materials[0]
-        mat2 = materials[1]
-        mat3 = materials[2]
-        d1 = thicknesses[0]
-        d2 = thicknesses[1]
-        fresnelm1 = def_fresnel_coefficients(medium, mat1)
-        fresnel12 = def_fresnel_coefficients(mat1, mat2)
-        fresnel23 = def_fresnel_coefficients(mat2, mat3)
-
-        def reflection_coeff(k0, k):
-            rTMm1, rTEm1 = fresnelm1(k0, k)
-            rTM12, rTE12 = fresnel12(k0, k)
-            rTM23, rTE23 = fresnel23(k0, k)
-            kappa1 = kappa(mat1, k0, k)
-            kappa2 = kappa(mat2, k0, k)
-
-            rTM12_eff = (rTM12 + rTM23*exp(-2*kappa2*d2))/(1 + rTM12*rTM23*exp(-2*kappa2*d2))
-            rTE12_eff = (rTE12 + rTE23*exp(-2*kappa2*d2))/(1 + rTE12*rTE23*exp(-2*kappa2*d2))
-
-            rTM = (rTMm1 + rTM12_eff*exp(-2*kappa1*d1))/(1 + rTMm1*rTM12_eff*exp(-2*kappa1*d1))
-            rTE = (rTEm1 + rTE12_eff*exp(-2*kappa1*d1))/(1 + rTEm1*rTE12_eff*exp(-2*kappa1*d1))
-            return rTM, rTE
-
-    if Nlayers == 4:
-        mat1 = materials[0]
-        mat2 = materials[1]
-        mat3 = materials[2]
-        mat4 = materials[3]
-        d1 = thicknesses[0]
-        d2 = thicknesses[1]
-        d3 = thicknesses[2]
-        fresnelm1 = def_fresnel_coefficients(medium, mat1)
-        fresnel12 = def_fresnel_coefficients(mat1, mat2)
-        fresnel23 = def_fresnel_coefficients(mat2, mat3)
-        fresnel34 = def_fresnel_coefficients(mat3, mat4)
-
-        def reflection_coeff(k0, k):
-            rTMm1, rTEm1 = fresnelm1(k0, k)
-            rTM12, rTE12 = fresnel12(k0, k)
-            rTM23, rTE23 = fresnel23(k0, k)
-            rTM34, rTE34 = fresnel34(k0, k)
-            kappa1 = kappa(mat1, k0, k)
-            kappa2 = kappa(mat2, k0, k)
-            kappa3 = kappa(mat3, k0, k)
-
-            rTM23_eff = (rTM23 + rTM34 * exp(-2 * kappa3 * d3)) / (1 + rTM23 * rTM34 * exp(-2 * kappa3 * d3))
-            rTE23_eff = (rTE23 + rTE34 * exp(-2 * kappa3 * d3)) / (1 + rTE23 * rTE34 * exp(-2 * kappa3 * d3))
-
-            rTM12_eff = (rTM12 + rTM23_eff*exp(-2*kappa2*d2))/(1 + rTM12*rTM23_eff*exp(-2*kappa2*d2))
-            rTE12_eff = (rTE12 + rTE23_eff*exp(-2*kappa2*d2))/(1 + rTE12*rTE23_eff*exp(-2*kappa2*d2))
-
-            rTM = (rTMm1 + rTM12_eff*exp(-2*kappa1*d1))/(1 + rTMm1*rTM12_eff*exp(-2*kappa1*d1))
-            rTE = (rTEm1 + rTE12_eff*exp(-2*kappa1*d1))/(1 + rTEm1*rTE12_eff*exp(-2*kappa1*d1))
-            return rTM, rTE
+        return _combine_reflection_coefficients(
+            interface_coefficients[0](k0, k),
+            effective_reflection,
+            kappa(materials[0], k0, k),
+            thicknesses[0],
+        )
 
     return reflection_coeff
 
@@ -180,4 +140,3 @@ def def_fresnel_coefficients(mat1, mat2):
 
         return rTM, rTE
     return fresnel_coefficients
-

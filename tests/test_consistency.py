@@ -56,6 +56,19 @@ def test_identical_coating_and_substrate_match_uncoated_case():
     assert_allclose(coated.energy(), bare.energy(), rtol=1e-10)
 
 
+def test_many_identical_layers_match_uncoated_case():
+    coated = system(
+        300.0,
+        1e-6,
+        [gold, gold, gold, gold, gold, gold],
+        gold,
+        vacuum,
+        deltaL=[5e-9, 7e-9, 9e-9, 11e-9, 13e-9],
+    )
+    bare = system(300.0, 1e-6, gold, gold, vacuum)
+    assert_allclose(coated.pressure(), bare.pressure(), rtol=1e-10)
+
+
 def test_left_and_right_coating_are_symmetric():
     left = system(300.0, 1e-6, [teflon, gold], gold, vacuum, deltaL=[50e-9])
     right = system(300.0, 1e-6, gold, [teflon, gold], vacuum, deltaR=[50e-9])
