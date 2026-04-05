@@ -45,7 +45,9 @@ class UserMaterial:
         self.materialclass = "dielectric"
 
     def epsilon(self, xi):
-        return 1.0 + 1.5e30 / (1.0e30 + xi**2)
+        wj = 1.911e15
+        cj = 1.282
+        return 1.0 + cj * wj**2 / (wj**2 + xi**2)
 ```
 
 The argument `xi` is the imaginary angular frequency in `rad/s`.

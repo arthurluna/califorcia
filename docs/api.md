@@ -32,19 +32,19 @@ If a side is layered:
 
 ## Main Methods
 
-### `system.energy(ht_limit=False, fs="psd", epsrel=1e-8, N=None)`
+### `system.energy(ht_limit=False, fs="psd", epsrel=1e-8, epsabs=0.0, N=None)`
 
 Returns the Casimir free energy per unit area.
 
-### `system.pressure(ht_limit=False, fs="psd", epsrel=1e-8, N=None)`
+### `system.pressure(ht_limit=False, fs="psd", epsrel=1e-8, epsabs=0.0, N=None)`
 
 Returns the Casimir pressure.
 
-### `system.pressuregradient(ht_limit=False, fs="psd", epsrel=1e-8, N=None)`
+### `system.pressuregradient(ht_limit=False, fs="psd", epsrel=1e-8, epsabs=0.0, N=None)`
 
 Returns the pressure gradient.
 
-### `system.calculate(observable, ht_limit=False, fs="psd", epsrel=1e-8, N=None)`
+### `system.calculate(observable, ht_limit=False, fs="psd", epsrel=1e-8, epsabs=0.0, N=None)`
 
 General entry point used by the convenience methods above.
 
@@ -71,6 +71,10 @@ Finite-temperature summation method:
 
 Relative target accuracy for the finite-frequency sum.
 
+### `epsabs`
+
+Absolute target accuracy for the radial quadratures and for the zero-temperature frequency integration.
+
 ### `N`
 
 Optional summation order. If omitted, the implementation selects it automatically.
@@ -83,7 +87,14 @@ The quantity is always per unit area.
 
 ## Error Conditions
 
-The constructor raises `ValueError` if coating thicknesses do not match the number of layers.
+The constructor raises `ValueError` for invalid physical or material inputs, including:
+
+- coating thickness lists that do not match the number of layers
+- non-positive plate separation
+- negative coating thickness
+- too many materials on one side
+- unsupported `materialclass`
+- plasma materials that do not define `wp`
 
 `calculate(...)` raises `ValueError` for unsupported observables or unsupported frequency-summation methods.
 

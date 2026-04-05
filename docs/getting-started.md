@@ -135,6 +135,7 @@ pressure = s.pressure(fs="psd", epsrel=1e-8)
 Parameters:
 
 - `epsrel`: target relative precision for the frequency summation
+- `epsabs`: target absolute precision for the radial and zero-temperature quadratures
 - `N`: optional number of summation terms
 
 If `N` is omitted, the package chooses it automatically based  on the value of `epsrel`.
