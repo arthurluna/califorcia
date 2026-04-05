@@ -101,7 +101,8 @@ Rules:
 
 - `len(matL) == len(deltaL) + 1`
 - `len(matR) == len(deltaR) + 1`
-- up to three coating layers are supported on each side
+- each thickness list contains one entry per coating layer
+- the recursive multilayer reflection construction supports arbitrary layer counts
 
 ## 6. Zero-Temperature And High-Temperature Cases
 

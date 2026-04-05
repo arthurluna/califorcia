@@ -8,7 +8,6 @@ from scipy.integrate import quad
 from math import inf
 
 SUPPORTED_MATERIALCLASSES = {"dielectric", "drude", "plasma", "pec"}
-MAX_MATERIALS_PER_SIDE = 4
 
 class system:
     '''Class that defines the system of two parallel plates.
@@ -25,7 +24,7 @@ class system:
             Separation in m
         matL, matR: object or list objects
             Material of left and right plate, respectively. If specified as a list, the first material corresponds to
-            the coating facing the medium and so on. The list can contain up to 4 materials.
+            the coating facing the medium and so on.
         matm : object
             Material of medium
         deltaL, deltaR : list
@@ -72,10 +71,6 @@ class system:
             raise ValueError("A thickness needs to be assigned to each coating layer on plate L, i.e. len(matL)=len(deltaL)+1 must hold.")
         if not len(self.matR) == len(self.deltaR) + 1:
             raise ValueError("A thickness needs to be assigned to each coating layer on plate R, i.e. len(matR)=len(deltaR)+1 must hold.")
-        if len(self.matL) > MAX_MATERIALS_PER_SIDE:
-            raise ValueError(f"At most {MAX_MATERIALS_PER_SIDE} materials are supported on plate L.")
-        if len(self.matR) > MAX_MATERIALS_PER_SIDE:
-            raise ValueError(f"At most {MAX_MATERIALS_PER_SIDE} materials are supported on plate R.")
         if any(thickness < 0.0 for thickness in self.deltaL):
             raise ValueError("Coating thicknesses on plate L must be non-negative.")
         if any(thickness < 0.0 for thickness in self.deltaR):

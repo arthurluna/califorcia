@@ -10,6 +10,7 @@ It supports:
 - Zero-temperature and finite-temperature calculations
 - Homogeneous half-spaces and coated planes
 - Built-in and user-defined material response models
+- Recursive multilayer reflection construction for layered coatings
 
 <p align="center">
   <img src="images/casimir_effect.svg" height="60%" width="60%">

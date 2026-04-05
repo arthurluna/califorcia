@@ -125,4 +125,4 @@ Ordering convention for `deltaL` and `deltaR`:
 
 In the example above, [teflon, gold] means a Teflon coating on a gold substrate, and deltaL=[50e-9] specifies that the Teflon layer has thickness 50 nm.
 
-The current implementation supports up to three coating layers on each side.
+The multilayer reflection construction is recursive, so layered stacks are not limited to a fixed small number of coatings as long as the corresponding thickness list is provided.

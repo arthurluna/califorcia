@@ -40,12 +40,6 @@ def test_negative_right_coating_thickness_raises_value_error():
     with pytest.raises(ValueError, match="plate R must be non-negative"):
         system(300.0, 1e-6, gold, [gold, gold], vacuum, deltaR=[-1e-9])
 
-
-def test_more_than_four_materials_on_left_plate_raises_value_error():
-    with pytest.raises(ValueError, match="At most 4 materials"):
-        system(300.0, 1e-6, [gold, gold, gold, gold, gold], gold, vacuum, deltaL=[1e-9, 1e-9, 1e-9, 1e-9])
-
-
 class UnsupportedMaterial:
     materialclass = "mystery"
 
