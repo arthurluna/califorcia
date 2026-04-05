@@ -46,3 +46,9 @@ def test_many_identical_material_layers_reduce_to_same_reflection():
     )
     single = def_reflection_coeff(vacuum, [gold_drude], [])
     assert_allclose(multilayer(1.2, 0.7), single(1.2, 0.7), rtol=1e-12)
+
+
+def test_pec_top_layer_ignores_underlying_stack():
+    coated = def_reflection_coeff(vacuum, [pec, gold_drude, teflon, gold_drude], [5e-9, 7e-9, 9e-9])
+    bare = def_reflection_coeff(vacuum, [pec], [])
+    assert_allclose(coated(1.2, 0.7), bare(1.2, 0.7), rtol=1e-12)

@@ -85,6 +85,23 @@ def test_pressure_matches_finite_difference_of_energy():
     assert_allclose(s.pressure(), finite_difference, rtol=5e-4)
 
 
+def test_pressuregradient_matches_finite_difference_of_pressure():
+    d = 500e-9
+    step = 1e-9
+    s = system(300.0, d, gold, gold, vacuum)
+    s_plus = system(300.0, d + step, gold, gold, vacuum)
+    s_minus = system(300.0, d - step, gold, gold, vacuum)
+    finite_difference = (s_plus.pressure() - s_minus.pressure()) / (2 * step)
+    assert_allclose(s.pressuregradient(), finite_difference, rtol=5e-4)
+
+
+def test_vacuum_coating_in_vacuum_shifts_effective_separation():
+    coating_thickness = 50e-9
+    coated = system(300.0, 1e-6, [vacuum, gold], gold, vacuum, deltaL=[coating_thickness])
+    shifted = system(300.0, 1e-6 + coating_thickness, gold, gold, vacuum)
+    assert_allclose(coated.pressure(), shifted.pressure(), rtol=1e-7)
+
+
 def test_custom_dielectric_material_can_be_used_in_system():
     s = system(300.0, 100e-9, gold, LorentzDielectric(), ethanol)
     assert pytest.approx(0.22099374769016233, rel=1e-12) == s.pressure()
