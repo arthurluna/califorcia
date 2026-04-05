@@ -1,5 +1,0 @@
-* implement PEC as material and check that we obtain Casimir's result correctly
-* check that energy, force, and forcegradient are actually derivatives of each other
-* implement high-temperature limit and check against analytical results
-* check what happens if we coat with vacuum, does that just effectively change the separation?
-* test reflection coefficients: pec on top will ignore everything under, thinner coating means reflection coefficient is smaller, etc.
