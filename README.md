@@ -133,6 +133,8 @@ pytest
 
 Current regression tests are in [`tests/test_results.py`](tests/test_results.py).
 
+GitHub Actions continuous integration is configured in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) and runs the test suite automatically on pushes to `master` and on pull requests.
+
 ## Citation And Scientific Use
 
 If you use this package in research, it is a good idea to cite:

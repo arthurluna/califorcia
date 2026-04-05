@@ -1,7 +1,10 @@
 califorcia.egg-info/
 env/
+.conda-test/
 build/
 dist/
+.pytest_cache/
+pytest-cache-files-*/
 
 misc/
 research/
