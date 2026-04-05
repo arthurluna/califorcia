@@ -87,7 +87,7 @@ class system:
         for idx, material in enumerate(self.matR):
             self._validate_material(material, f"matR[{idx}]")
 
-    def frequency_function(self, observable):
+    def frequency_function(self, observable, epsrel=1.e-8, epsabs=0.0):
         '''
         Defines the frequency summand or integrand within Lifshitz formula based on the specified observable.
 
@@ -115,9 +115,9 @@ class system:
         rR = def_reflection_coeff(self.matm, self.matR, self.deltaR)
 
         # define frequency (wave vector) integrand/summand
-        return lambda k0: func(k0, self.d, self.matm.epsilon, rL, rR)
+        return lambda k0: func(k0, self.d, self.matm.epsilon, rL, rR, epsrel=epsrel, epsabs=epsabs)
 
-    def calculate(self, observable, ht_limit=False, fs='psd', epsrel=1.e-8, N=None):
+    def calculate(self, observable, ht_limit=False, fs='psd', epsrel=1.e-8, epsabs=0.0, N=None):
         '''
         Calculate the Casimir interaction according to the specified observable.
 
@@ -132,6 +132,8 @@ class system:
             or 'psd' (Pade spectrum decomposition). Default: 'psd'
         epsrel : float
             Target precision for frequency summation
+        epsabs : float
+            Absolute target precision for the radial and zero-temperature quadratures
         N : int
             Number of terms in the frequency summation. By default, `N=None` and the number is determined automatically
             based on the value of `epsrel`.
@@ -141,12 +143,12 @@ class system:
         float
             the value of the Casimir interaction
         '''
-        self.f = self.frequency_function(observable)
+        self.f = self.frequency_function(observable, epsrel=epsrel, epsabs=epsabs)
 
         if self.T == 0.:
             # frequency integration
             t_func = lambda t: np.sum(self.f(t / self.d)) / self.d
-            return hbar * c / 2 / pi * quad(t_func, 0, inf)[0]
+            return hbar * c / 2 / pi * quad(t_func, 0, inf, epsrel=epsrel, epsabs=epsabs)[0]
         else:
             # frequency summation
             if fs == 'psd':
@@ -163,14 +165,14 @@ class system:
             self.n1 = self.n1_TE + self.n1_TM
             return self.n0 + self.n1
 
-    def energy(self, ht_limit=False, fs='psd', epsrel=1.e-8, N=None):
+    def energy(self, ht_limit=False, fs='psd', epsrel=1.e-8, epsabs=0.0, N=None):
         # Calculate the Casimir energy per area
-        return self.calculate('energy', ht_limit=ht_limit, fs=fs, epsrel=epsrel, N=N)
+        return self.calculate('energy', ht_limit=ht_limit, fs=fs, epsrel=epsrel, epsabs=epsabs, N=N)
 
-    def pressure(self, ht_limit=False, fs='psd', epsrel=1.e-8, N=None):
+    def pressure(self, ht_limit=False, fs='psd', epsrel=1.e-8, epsabs=0.0, N=None):
         # Calculate the Casimir pressure
-        return self.calculate('pressure', ht_limit=ht_limit, fs=fs, epsrel=epsrel, N=N)
+        return self.calculate('pressure', ht_limit=ht_limit, fs=fs, epsrel=epsrel, epsabs=epsabs, N=N)
 
-    def pressuregradient(self, ht_limit=False, fs='psd', epsrel=1.e-8, N=None):
+    def pressuregradient(self, ht_limit=False, fs='psd', epsrel=1.e-8, epsabs=0.0, N=None):
         # Calculate the Casimir pressure
-        return self.calculate('pressuregradient', ht_limit=ht_limit, fs=fs, epsrel=epsrel, N=N)
+        return self.calculate('pressuregradient', ht_limit=ht_limit, fs=fs, epsrel=epsrel, epsabs=epsabs, N=N)
