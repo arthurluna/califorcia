@@ -42,6 +42,20 @@ They verify:
 - the perfect-conductor zero-temperature limit against Casimir's exact result
 - zero-frequency high-temperature limits for selected systems
 
+## Continuous Integration
+
+The repository includes a GitHub Actions workflow at [`.github/workflows/ci.yml`](../.github/workflows/ci.yml).
+
+It currently:
+
+- runs on pushes to `master`
+- runs on pull requests
+- tests against Python `3.11` and `3.12`
+- installs the package and test dependencies
+- runs `python -m pytest tests`
+
+This is a good first CI setup because it checks the most important question on every change: does the package still install and do the tests still pass?
+
 ## Source Layout
 
 - [`califorcia/compute.py`](../califorcia/compute.py): main `system` class and observable dispatch
