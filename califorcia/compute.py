@@ -7,6 +7,9 @@ from scipy.constants import pi, c, hbar
 from scipy.integrate import quad
 from math import inf
 
+SUPPORTED_MATERIALCLASSES = {"dielectric", "drude", "plasma", "pec"}
+MAX_MATERIALS_PER_SIDE = 4
+
 class system:
     '''Class that defines the system of two parallel plates.
     '''
@@ -42,11 +45,47 @@ class system:
             self.matR = matR
         self.deltaR = deltaR
         self.matm = matm
+        self._validate_inputs()
+
+    def _validate_material(self, material, location):
+        if not hasattr(material, "materialclass"):
+            raise ValueError(f"Material '{location}' must define 'materialclass'.")
+
+        materialclass = material.materialclass
+        if materialclass not in SUPPORTED_MATERIALCLASSES:
+            raise ValueError(
+                f"Unsupported materialclass '{materialclass}' for material '{location}'. "
+                f"Supported values are {sorted(SUPPORTED_MATERIALCLASSES)}."
+            )
+
+        if not hasattr(material, "epsilon"):
+            raise ValueError(f"Material '{location}' must define 'epsilon(xi)'.")
+
+        if materialclass == "plasma" and not hasattr(material, "wp"):
+            raise ValueError(f"Material '{location}' with materialclass 'plasma' must define 'wp'.")
+
+    def _validate_inputs(self):
+        if self.d <= 0.0:
+            raise ValueError("The plate separation d must be positive.")
 
         if not len(self.matL) == len(self.deltaL) + 1:
             raise ValueError("A thickness needs to be assigned to each coating layer on plate L, i.e. len(matL)=len(deltaL)+1 must hold.")
         if not len(self.matR) == len(self.deltaR) + 1:
             raise ValueError("A thickness needs to be assigned to each coating layer on plate R, i.e. len(matR)=len(deltaR)+1 must hold.")
+        if len(self.matL) > MAX_MATERIALS_PER_SIDE:
+            raise ValueError(f"At most {MAX_MATERIALS_PER_SIDE} materials are supported on plate L.")
+        if len(self.matR) > MAX_MATERIALS_PER_SIDE:
+            raise ValueError(f"At most {MAX_MATERIALS_PER_SIDE} materials are supported on plate R.")
+        if any(thickness < 0.0 for thickness in self.deltaL):
+            raise ValueError("Coating thicknesses on plate L must be non-negative.")
+        if any(thickness < 0.0 for thickness in self.deltaR):
+            raise ValueError("Coating thicknesses on plate R must be non-negative.")
+
+        self._validate_material(self.matm, "matm")
+        for idx, material in enumerate(self.matL):
+            self._validate_material(material, f"matL[{idx}]")
+        for idx, material in enumerate(self.matR):
+            self._validate_material(material, f"matR[{idx}]")
 
     def frequency_function(self, observable):
         '''
