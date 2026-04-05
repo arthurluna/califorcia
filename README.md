@@ -90,6 +90,8 @@ print("pressure:", s.pressure())
 - `system.pressuregradient(...)`
 - `system.calculate(observable, ...)`
 
+The main solver methods expose `epsrel` and `epsabs` to control numerical tolerances.
+
 ### Built-in Materials
 
 The repository ships predefined materials in [`califorcia/materials`](califorcia/materials), including:
