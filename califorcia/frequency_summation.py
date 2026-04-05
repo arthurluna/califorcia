@@ -34,7 +34,7 @@ def psd_sum(T, L, func, epsrel, order=None):
     return 0.5*k*T*res
 
 
-def msd_sum(T, L, func, epsrel, nmax=None):
+def msd_sum(T, L, func, epsrel, order=None):
     """Computes the PSD sum for the finite frequency/wavenumber contributions
 
     Parameters
@@ -58,8 +58,10 @@ def msd_sum(T, L, func, epsrel, nmax=None):
     K_matsubara = 2 * np.pi * k * T / (hbar * c)
     res = np.zeros(2)
     n = 1
-    if nmax == None:
+    if order == None:
         nmax = np.inf
+    else:
+        nmax = order
 
     while (n <= nmax):
         term = func(K_matsubara * n)

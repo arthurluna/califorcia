@@ -30,11 +30,15 @@ def test_zero_frequency():
     s = system(1/k, d, pec, pec, vacuum)
     # analytical result from: Bordag et al., Advances in the Casimir effect (Oxford University press, 2009), Eq. (14.5)
     assert_allclose(s.calculate('energy', ht_limit=True), -zeta3/8/pi/d**2)
+    assert_allclose(s.calculate('pressure', ht_limit=True), -zeta3/4/pi/d**3)
+    assert_allclose(s.calculate('pressuregradient', ht_limit=True), 3*zeta3/4/pi/d**4)
 
     d = 100.e-9
     s = system(1 / k, d, gold, gold, vacuum)
     # analytical result from: Bordag et al., Advances in the Casimir effect (Oxford University press, 2009), Eq. (14.7)
     assert_allclose(s.calculate('energy', ht_limit=True), -zeta3 / 16 / pi / d ** 2)
+    assert_allclose(s.calculate('pressure', ht_limit=True), -zeta3 / 8 / pi / d ** 3)
+    assert_allclose(s.calculate('pressuregradient', ht_limit=True), 3 * zeta3 / 8 / pi / d ** 4)
 
 if __name__ == '__main__':
     test_pec()
