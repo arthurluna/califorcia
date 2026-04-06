@@ -13,7 +13,7 @@ It supports:
 - Recursive multilayer reflection construction for layered coatings
 
 <p align="center">
-  <img src="images/casimir_effect.svg" height="60%" width="60%">
+  <img src="images/casimir_effect.jpg" height="60%" width="60%">
 </p>
 
 ## What The Package Models
