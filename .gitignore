@@ -8,6 +8,7 @@ pytest-cache-files-*/
 
 misc/
 research/
+images/archive/
 __pycache__/
 .idea/
 *.swp
