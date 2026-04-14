@@ -1,6 +1,7 @@
 import numpy as np
 from .plane import def_reflection_coeff
 from .interaction import k0_func_energy, k0_func_pressure, k0_func_pressuregradient
+from .longitudinal_interaction import k0_func_longitudinal_energy, k0_func_longitudinal_pressure
 from .frequency_summation import psd_sum, msd_sum
 from scipy.constants import k as kB
 from scipy.constants import pi, c, hbar
@@ -102,6 +103,12 @@ class system:
             func = k0_func_pressure
         elif observable == 'pressuregradient':
             func = k0_func_pressuregradient
+
+        elif observable == 'longitudinal_energy':
+            func = k0_func_longitudinal_energy
+        elif observable == 'longitudinal_pressure':
+            func = k0_func_longitudinal_pressure
+
         else:
             raise ValueError('Supported values for \'observable\' are either \'energy\', \'pressure\' or \'pressuregradient\'!')
 
@@ -171,3 +178,54 @@ class system:
     def pressuregradient(self, ht_limit=False, fs='psd', epsrel=1.e-8, epsabs=0.0, N=None):
         # Calculate the Casimir pressure
         return self.calculate('pressuregradient', ht_limit=ht_limit, fs=fs, epsrel=epsrel, epsabs=epsabs, N=N)
+
+    def calculate_longitudinal(self, observable, ht_limit=False, fs='psd', epsrel=1.e-8, epsabs=0.0):
+        '''
+        Calculate the Casimir interaction (according to the specified observable)
+        due to the longitudinal scattering channel (for media with ions in solution).
+
+        Contains only n=0 term in the frequency summation. 
+        See: 
+          * https://doi.org/10.1140/epjd/e2019-100225-8
+          * https://doi.org/10.1103/PhysRevA.111.012816
+
+
+        Parameters
+        ----------
+        observable : str
+            either 'energy' or 'pressure' 
+        ht_limit : bool
+            if set True, the high-temperature limit corresponding to the zero-frequency contribution only is calculated
+        fs : str
+            Method to be used to calculate the Matsubara frequency summation. Can be set to 'msd' (conventional summation)
+            or 'psd' (Pade spectrum decomposition). Default: 'psd'
+        epsrel : float
+            Target precision for frequency summation
+        epsabs : float
+            Absolute target precision for the radial and zero-temperature quadratures
+        N : int
+            Number of terms in the frequency summation. By default, `N=None` and the number is determined automatically
+            based on the value of `epsrel`.
+
+        Returns
+        -------
+        float
+            the value of the Casimir interaction
+        '''
+        self.f = self.frequency_function('longitudinal_'+observable, epsrel=epsrel, epsabs=epsabs)
+
+        
+        # frequency summation
+        if fs == 'psd':
+            fsum = psd_sum
+        elif fs == 'msd':
+            fsum = msd_sum
+        else:
+            raise ValueError('Supported values for fs are either \'psd\' or \'msd\'!')
+
+        [self.n0_TE, self.n0_TM] = 0.5 * self.T * kB * self.f(0.)
+        self.n0 = self.n0_TE + self.n0_TM
+        if ht_limit: return self.n0
+        [self.n1_TE, self.n1_TM] = fsum(self.T, self.d, self.f, epsrel=epsrel, order=N)
+        self.n1 = self.n1_TE + self.n1_TM
+        return self.n0 + self.n1
