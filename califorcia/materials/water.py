@@ -18,8 +18,7 @@ def f_lorentz(w, fi, wi, gi):
 
 def debye(w, epsD, epsInf, tau):
     '''
-    only reference I found (+refs. inside...)
-    ver: https://en.wikipedia.org/wiki/Dielectric#Debye_relaxation
+    See: https://en.wikipedia.org/wiki/Dielectric#Debye_relaxation
     '''
     #return (epsD-epsInf) /(1 - 1j*w*tau)
     return (epsD-epsInf) /(1 + w*tau)
