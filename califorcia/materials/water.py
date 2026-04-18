@@ -1,42 +1,19 @@
-from scipy.constants import hbar
-from scipy.constants import e as eV
+from ..models import LorentzModel, DebyeModel, CombinedModel
 
-materialclass = "dielectric"
+# Parameters for water solvent
+# Lorentz part
+f1, w1, g1 = 0.77, 2.79545e+16, 2.05101e+16
+lorentz = LorentzModel(f1, w1, g1)
 
+# Debye part
+epsD, epsInf, tau = 78.3, 1.8430, 7.76690e-12
+# We want contribution (epsD - epsInf) / (1 + xi*tau)
+# DebyeModel(D, I, tau) returns I + (D - I) / (1 + xi*tau)
+# If we set I = 1.0 and D = (epsD - epsInf) + 1.0, we get 1.0 + (epsD - epsInf) / (1 + xi*tau)
+debye = DebyeModel(epsD - epsInf + 1.0, 1.0, tau)
 
-def f_lorentz(w, fi, wi, gi):
-    '''
-    w is the energy of the photon in eV
-    Lorentz model for dielectric matter. 
-    see: Zangwill page 635 <- !
-    see: Zangwill pages 624-626 + 631
-    see: Casimir physics pages 98-99
-    '''
-    #return fi*( wi**2 /(wi**2 - w**2 - 1j*gi*w ) )
-    return fi*( wi**2 /(wi**2 + w**2 + gi*w ) )
-
-
-def debye(w, epsD, epsInf, tau):
-    '''
-    See: https://en.wikipedia.org/wiki/Dielectric#Debye_relaxation
-    '''
-    #return (epsD-epsInf) /(1 - 1j*w*tau)
-    return (epsD-epsInf) /(1 + w*tau)
-
-class eps_f_lorentz_n1_debye:
-    def __init__(self, f1, w1, g1, epsD, epsInf, tau):
-        self.f1 = f1
-        self.w1 = w1
-        self.g1 = g1
-        self.epsD = epsD
-        self.epsInf = epsInf
-        self.tau = tau
-
-    def __call__(self, w):
-        return ( 1 + f_lorentz(w, self.f1, self.w1, self.g1) 
-                   + debye(w, self.epsD, self.epsInf, self.tau) )
-
-
-
-epsilon = eps_f_lorentz_n1_debye(0.77, 2.79545e+16, 2.05101e+16, 78.3, 1.8430, 7.76690e-12)
-#print(epsilon(0.))
+# Combined solvent model (Water)
+# CombinedModel([m1, m2]) returns m1.eps + m2.eps - 1.0
+# (1.0 + L) + (1.0 + D_term - 1.0) = 1.0 + L + D_term
+epsilon = CombinedModel([lorentz, debye])
+materialclass = epsilon.materialclass
