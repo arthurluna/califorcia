@@ -1,5 +1,5 @@
 import numpy as np
-from .plane import def_reflection_coeff
+from .plane import def_reflection_coeff, def_longitudinal_reflection_coeff
 from .interaction import k0_func_energy, k0_func_pressure, k0_func_pressuregradient
 from .longitudinal_interaction import k0_func_longitudinal_energy, k0_func_longitudinal_pressure
 from .frequency_summation import psd_sum, msd_sum
@@ -8,7 +8,7 @@ from scipy.constants import pi, c, hbar
 from scipy.integrate import quad
 from math import inf
 
-SUPPORTED_MATERIALCLASSES = {"dielectric", "drude", "plasma", "pec"}
+SUPPORTED_MATERIALCLASSES = {"dielectric", "drude", "plasma", "pec", "electrolites"}
 
 class system:
     '''Class that defines the system of two parallel plates.
@@ -99,25 +99,38 @@ class system:
         '''
         if observable == 'energy':
             func = k0_func_energy
+            rL_func = def_reflection_coeff
+            rR_func = def_reflection_coeff
         elif observable == 'pressure':
             func = k0_func_pressure
+            rL_func = def_reflection_coeff
+            rR_func = def_reflection_coeff
         elif observable == 'pressuregradient':
             func = k0_func_pressuregradient
+            rL_func = def_reflection_coeff
+            rR_func = def_reflection_coeff
 
         elif observable == 'longitudinal_energy':
             func = k0_func_longitudinal_energy
+            rL_func = def_longitudinal_reflection_coeff
+            rR_func = def_longitudinal_reflection_coeff
         elif observable == 'longitudinal_pressure':
             func = k0_func_longitudinal_pressure
+            rL_func = def_longitudinal_reflection_coeff
+            rR_func = def_longitudinal_reflection_coeff
 
         else:
             raise ValueError('Supported values for \'observable\' are either \'energy\', \'pressure\' or \'pressuregradient\'!')
 
         # define reflection coefficients
-        rL = def_reflection_coeff(self.matm, self.matL, self.deltaL)
-        rR = def_reflection_coeff(self.matm, self.matR, self.deltaR)
+        rL = rL_func(self.matm, self.matL, self.deltaL)
+        rR = rR_func(self.matm, self.matR, self.deltaR)
 
         # define frequency (wave vector) integrand/summand
-        return lambda k0: func(k0, self.d, self.matm.epsilon, rL, rR, epsrel=epsrel, epsabs=epsabs)
+        if 'longitudinal' in observable:
+            return lambda k0: func(k0, self.d, self.matm, rL, rR, epsrel=epsrel, epsabs=epsabs)
+        else:
+            return lambda k0: func(k0, self.d, self.matm.epsilon, rL, rR, epsrel=epsrel, epsabs=epsabs)
 
     def calculate(self, observable, ht_limit=False, fs='psd', epsrel=1.e-8, epsabs=0.0, N=None):
         '''
@@ -179,7 +192,7 @@ class system:
         # Calculate the Casimir pressure
         return self.calculate('pressuregradient', ht_limit=ht_limit, fs=fs, epsrel=epsrel, epsabs=epsabs, N=N)
 
-    def calculate_longitudinal(self, observable, ht_limit=False, fs='psd', epsrel=1.e-8, epsabs=0.0):
+    def calculate_longitudinal(self, observable, epsrel=1.e-8, epsabs=0.0):
         '''
         Calculate the Casimir interaction (according to the specified observable)
         due to the longitudinal scattering channel (for media with ions in solution).
@@ -194,18 +207,10 @@ class system:
         ----------
         observable : str
             either 'energy' or 'pressure' 
-        ht_limit : bool
-            if set True, the high-temperature limit corresponding to the zero-frequency contribution only is calculated
-        fs : str
-            Method to be used to calculate the Matsubara frequency summation. Can be set to 'msd' (conventional summation)
-            or 'psd' (Pade spectrum decomposition). Default: 'psd'
         epsrel : float
-            Target precision for frequency summation
+            Target precision for frequency summation (not used for n=0)
         epsabs : float
             Absolute target precision for the radial and zero-temperature quadratures
-        N : int
-            Number of terms in the frequency summation. By default, `N=None` and the number is determined automatically
-            based on the value of `epsrel`.
 
         Returns
         -------
@@ -214,18 +219,10 @@ class system:
         '''
         self.f = self.frequency_function('longitudinal_'+observable, epsrel=epsrel, epsabs=epsabs)
 
+        # For longitudinal, only n=0 contribution is relevant as per Ref 2.
+        # F0 = (kBT/2) * f(0)
+        # f(0) returns sum over polarizations (already handled in longitudinal_interaction.py)
+        # Actually longitudinal_interaction.py returns a scalar (sum of polarizations not applicable here as it's a single mode)
         
-        # frequency summation
-        if fs == 'psd':
-            fsum = psd_sum
-        elif fs == 'msd':
-            fsum = msd_sum
-        else:
-            raise ValueError('Supported values for fs are either \'psd\' or \'msd\'!')
-
-        [self.n0_TE, self.n0_TM] = 0.5 * self.T * kB * self.f(0.)
-        self.n0 = self.n0_TE + self.n0_TM
-        if ht_limit: return self.n0
-        [self.n1_TE, self.n1_TM] = fsum(self.T, self.d, self.f, epsrel=epsrel, order=N)
-        self.n1 = self.n1_TE + self.n1_TM
-        return self.n0 + self.n1
+        self.n0 = 0.5 * self.T * kB * self.f(0.)
+        return self.n0
