@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.constants import hbar, c
 from scipy.constants import e as eV
+from scipy.constants import k as kB
 from math import inf
 
 class MaterialModel:
@@ -117,16 +118,29 @@ class CombinedModel(MaterialModel):
         return res
 
 class ElectrolyteModel(MaterialModel):
-    def __init__(self, solvent_model, kappa_D):
+    def __init__(self, solvent_model, kappa_D, gamma=1e11, T=300.0, ion_mass=6.492e-26):
         """
         Electrolyte model including solvent dielectric response and ionic screening.
         
         solvent_model: An instance of MaterialModel (usually DielectricModel)
         kappa_D: Debye screening length [1/m]
+        gamma: Effective damping for Drude-like behavior at n=0.
+        T: Temperature [K]
+        ion_mass: Mass of the lightest ion [kg] (default is K+ approx 39 amu)
         """
         super().__init__("electrolites")
         self.solvent_model = solvent_model
         self.kappa_D = kappa_D
+        self.gamma = gamma
+        self.T = T
+        self.ion_mass = ion_mass
 
     def epsilon(self, xi):
         return self.solvent_model.epsilon(xi)
+
+    @property
+    def wp(self):
+        """Physical plasma frequency for electrolytes based on thermal velocity."""
+        v_th = np.sqrt(kB * self.T / self.ion_mass)
+        eps_b0 = self.solvent_model.epsilon(0.0)
+        return np.sqrt(eps_b0) * v_th * self.kappa_D
