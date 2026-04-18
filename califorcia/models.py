@@ -91,7 +91,7 @@ class SellmeierModel(MaterialModel):
             return 1.0 + np.sum(self.B_list)
         import scipy.constants as const
         l_sq = (2 * np.pi * const.c / xi)**2
-        return 1.0 + np.sum(self.B_list * l_sq / (l_sq - self.C_list))
+        return 1.0 + np.sum(self.B_list * l_sq / (l_sq + self.C_list))
 
 class DebyeModel(MaterialModel):
     def __init__(self, epsD, epsInf, tau):
@@ -117,24 +117,16 @@ class CombinedModel(MaterialModel):
         return res
 
 class ElectrolyteModel(MaterialModel):
-    def __init__(self, solvent_model, kappa_D, gamma=0.0):
+    def __init__(self, solvent_model, kappa_D):
         """
         Electrolyte model including solvent dielectric response and ionic screening.
         
         solvent_model: An instance of MaterialModel (usually DielectricModel)
         kappa_D: Debye screening length [1/m]
-        gamma: Effective damping for Drude-like behavior at n=0.
         """
         super().__init__("electrolites")
         self.solvent_model = solvent_model
         self.kappa_D = kappa_D
-        self.gamma = gamma
 
     def epsilon(self, xi):
         return self.solvent_model.epsilon(xi)
-
-    @property
-    def wp(self):
-        """Some parts of the code might expect wp if it's treated like a plasma-like medium at n=0."""
-        # For electrolytes, kappa_D * c acts as a 'plasma frequency' in some contexts
-        return self.kappa_D * c
