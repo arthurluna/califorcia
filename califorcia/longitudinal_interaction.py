@@ -3,111 +3,57 @@ from scipy.integrate import quad_vec
 from math import sqrt, exp, inf, log1p, pi
 from scipy.constants import c
 
-def k_integrand_energy(k, k0, d, epsm, rL, rR):
+def k_integrand_longitudinal_energy(k, k0, d, matm, rL, rR):
     """
-    Integrand of the radial part of in-plane wave vector for the Casimir energy.
-
-    Parameters
-    ----------
-    k : float
-        in-plane wave vector
-    k0 : float
-        vacuum wave number
-    d : float
-        separation between the two plates
-    epsm : float
-        dielectric function of the medium evaluated at the vacuum wave number
-    rL, rR : float
-        reflection coefficient of the left and right plate, respectively
-
-    Returns
-    -------
-    (float, float)
-        result for TE and TM polarization
+    Integrand for the longitudinal scattering channel Casimir energy at k0=0.
+    See Eq. (17) in Phys. Rev. A 111, 012816 (2025).
     """
-    kappa = sqrt(epsm * k0 ** 2 + k ** 2)
-    rTM_L, rTE_L = rL(k0, k)
-    rTM_R, rTE_R = rR(k0, k)
-    res_TE = k / 2 / pi * log1p(- rTE_L * rTE_R * exp(-2 * kappa * d))
-    res_TM = k / 2 / pi * log1p(- rTM_L * rTM_R * exp(-2 * kappa * d))
-    return res_TE, res_TM
+    # kappa_l = sqrt(k^2 + 1/lambda_D^2)
+    # 1/lambda_D is matm.kappa_D
+    kappa_l = sqrt(k**2 + matm.kappa_D**2)
+    r_ll_L = rL(0.0, k)
+    r_ll_R = rR(0.0, k)
+    
+    # The term in the log is (1 - r_ll_L * r_ll_R * exp(-2 * kappa_l * d))
+    return k / 2 / pi * log1p(- r_ll_L * r_ll_R * exp(-2 * kappa_l * d))
 
-def _integrate_k0_contribution(integrand, k0, d, epsm_func, rL, rR, epsrel=1.e-8, epsabs=0.0):
-    epsm = epsm_func(k0 * c)
-    f = lambda t: np.array(integrand(t / d, k0, d, epsm, rL, rR)) / d
+def _integrate_k0_longitudinal_contribution(integrand, d, matm, rL, rR, epsrel=1.e-8, epsabs=0.0):
+    # For longitudinal, only k0=0 is relevant.
+    f = lambda t: integrand(t / d, 0.0, d, matm, rL, rR) / d
     return quad_vec(f, 0, inf, epsrel=epsrel, epsabs=epsabs)[0]
 
 
-def k0_func_longitudinal_energy(k0, d, epsm_func, rL, rR, epsrel=1.e-8, epsabs=0.0):
+def k0_func_longitudinal_energy(k0, d, matm, rL, rR, epsrel=1.e-8, epsabs=0.0):
     """
-    Casimir free energy contribution at a given wave number k0.
-
-    Parameters
-    ----------
-    k0 : float
-        vacuum wave number
-    d : float
-        separation between the two plates
-    epsm_func : function
-        dielectric function of the medium
-    rL, rR : float
-        reflection coefficient of the left and right plate, respectively
-
-    Returns
-    -------
-    numpy array of two floats
-        result for TE and TM polarization
+    Casimir free energy contribution at k0=0 for longitudinal channel.
     """
-    return _integrate_k0_contribution(k_integrand_energy, k0, d, epsm_func, rL, rR, epsrel=epsrel, epsabs=epsabs)
+    if k0 != 0.0:
+        return 0.0
+    return _integrate_k0_longitudinal_contribution(k_integrand_longitudinal_energy, d, matm, rL, rR, epsrel=epsrel, epsabs=epsabs)
 
-def k_integrand_pressure(k, k0, d, epsm, rL, rR):
+def k_integrand_longitudinal_pressure(k, k0, d, matm, rL, rR):
     """
-    Integrand of the radial part of in-plane wave vector for the Casimir pressure.
-
-    Parameters
-    ----------
-    k : float
-        in-plane wave vector
-    k0 : float
-        vacuum wave number
-    d : float
-        separation between the two plates
-    epsm : float
-        dielectric function of the medium evaluated at the vacuum wave number
-    rL, rR : float
-        reflection coefficient of the left and right plate, respectively
-
-    Returns
-    -------
-    (float, float)
-        result for TE and TM polarization
+    Integrand for the longitudinal scattering channel Casimir pressure at k0=0.
     """
-    kappa = sqrt(epsm * k0 ** 2 + k ** 2)
-    rTM_L, rTE_L = rL(k0, k)
-    rTM_R, rTE_R = rR(k0, k)
-    res_TE = -2 * k * kappa / 2 / pi * rTE_L * rTE_R * exp(-2 * kappa * d) / (1 - rTE_L * rTE_R * exp(-2 * kappa * d))
-    res_TM = -2 * k * kappa / 2 / pi * rTM_L * rTM_R * exp(-2 * kappa * d) / (1 - rTM_L * rTM_R * exp(-2 * kappa * d))
-    return res_TE, res_TM
+    kappa_l = sqrt(k**2 + matm.kappa_D**2)
+    r_ll_L = rL(0.0, k)
+    r_ll_R = rR(0.0, k)
+    
+    # Factor 2*kappa_l from derivative of exponent? 
+    # Standard Lifshitz pressure: sum_alpha integral k * kappa / pi * ...
+    # Eq (17) for energy is F = (kBT/2) * integral (d^2k/(2pi)^2) log(...)
+    # Pressure P = -dF/dD = - (kBT/2) * integral (d^2k/(2pi)^2) [ (-2*kappa_l) * rL*rR*exp(-2*kappa_l*d) / (1 - rL*rR*exp(-2*kappa_l*d)) ]
+    # P = (kBT/2) * integral (k dk / 2pi) * 2 * kappa_l * rL*rR*exp(-2*kappa_l*d) / (1 - rL*rR*exp(-2*kappa_l*d))
+    # P = integral (k * kappa_l / 2pi) * ...
+    
+    num = r_ll_L * r_ll_R * exp(-2 * kappa_l * d)
+    res = 2 * k * kappa_l / 2 / pi * num / (1 - num)
+    return res
 
-def k0_func_longitudinal_pressure(k0, d, epsm_func, rL, rR, epsrel=1.e-8, epsabs=0.0):
+def k0_func_longitudinal_pressure(k0, d, matm, rL, rR, epsrel=1.e-8, epsabs=0.0):
     """
-    Casimir pressure contribution at a given wave number k0.
-
-    Parameters
-    ----------
-    k0 : float
-        vacuum wave number
-    d : float
-        separation between the two plates
-    epsm_func : function
-        dielectric function of the medium
-    rL, rR : float
-        reflection coefficient of the left and right plate, respectively
-
-    Returns
-    -------
-    numpy array of two floats
-        result for TE and TM polarization
+    Casimir pressure contribution at k0=0 for longitudinal channel.
     """
-    return _integrate_k0_contribution(k_integrand_pressure, k0, d, epsm_func, rL, rR, epsrel=epsrel, epsabs=epsabs)
-
+    if k0 != 0.0:
+        return 0.0
+    return _integrate_k0_longitudinal_contribution(k_integrand_longitudinal_pressure, d, matm, rL, rR, epsrel=epsrel, epsabs=epsabs)
